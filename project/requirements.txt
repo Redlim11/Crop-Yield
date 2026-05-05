@@ -3,5 +3,6 @@ numpy
 pandas
 scikit-learn
 xgboost
-joblib
 matplotlib
+joblib
+reportlab==4.2.0
