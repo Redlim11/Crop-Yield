@@ -219,7 +219,7 @@ if predict:
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     
-    ax.grid(axis='x', linestyle='--', alpha=0.3)
+    ax.grid(axis='x', alpha=0.3)
     
     plt.tight_layout()
     
