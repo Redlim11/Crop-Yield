@@ -14,38 +14,49 @@ st.markdown("""
 /* ---------- GLOBAL ---------- */
 html, body, [class*="css"] {
     font-family: 'Segoe UI', sans-serif;
-    color: #212121 !important;
+    color: #1C1C1C;
 }
 
+/* ---------- BACKGROUND ---------- */
 .stApp {
-    background-color: #FAFAFA;
+    background-color: #F8FBF8;
 }
 
-/* ---------- HEADINGS ---------- */
+/* ---------- TITLE ---------- */
 h1 {
     color: #1B5E20 !important;
     font-weight: 700;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
-h2, h3 {
+h2 {
     color: #2E7D32 !important;
 }
 
-/* ---------- SIDEBAR FIXED ---------- */
+h3 {
+    color: #2E7D32 !important;
+}
+
+/* ---------- TEXT ---------- */
+p {
+    text-align: center;
+    color: #616161;
+}
+
+/* ---------- SIDEBAR ---------- */
 section[data-testid="stSidebar"] {
     background-color: #FFFFFF;
     border-right: 1px solid #E0E0E0;
-    position: fixed !important;
-    height: 100vh;
-    overflow-y: auto;
 }
 
-/* ---------- MAIN CONTENT SHIFT ---------- */
-section.main > div {
-    margin-left: 320px;
+/* ---------- FIXED SIDEBAR ---------- */
+section[data-testid="stSidebar"] > div {
+    position: fixed;
+    width: 300px;
 }
 
-/* ---------- SELECTBOX FIX ---------- */
+/* ---------- SELECTBOX ---------- */
 div[data-baseweb="select"] {
     background-color: #FFFFFF !important;
     border: 1px solid #C8E6C9 !important;
@@ -58,21 +69,23 @@ div[data-baseweb="select"] * {
 
 /* ---------- METRIC CARDS ---------- */
 div[data-testid="metric-container"] {
-    background-color: #FFFFFF;
+    background: #FFFFFF;
     border: 1px solid #E0E0E0;
     padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0px 3px 6px rgba(0,0,0,0.05);
+    border-radius: 12px;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.06);
+    text-align: center;
 }
 
 /* ---------- METRIC TEXT ---------- */
 [data-testid="stMetricValue"] {
     color: #1B5E20 !important;
     font-weight: 700;
+    font-size: 28px;
 }
 
 [data-testid="stMetricLabel"] {
-    color: #424242 !important;
+    color: #757575 !important;
 }
 
 /* ---------- BUTTON ---------- */
@@ -80,7 +93,7 @@ div[data-testid="metric-container"] {
     background-color: #2E7D32;
     color: white;
     border-radius: 6px;
-    padding: 10px 16px;
+    padding: 10px 18px;
     border: none;
 }
 
@@ -88,12 +101,19 @@ div[data-testid="metric-container"] {
     background-color: #1B5E20;
 }
 
+/* ---------- CONTENT SPACING ---------- */
+.block-container {
+    padding-top: 2rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------- TITLE ----------------
-st.title("Smart Agriculture Decision Support System")
-st.markdown("Crop Recommendation and Yield Prediction using Machine Learning")
+st.markdown("<h1>Smart Agriculture Decision Support System</h1>", unsafe_allow_html=True)
+st.markdown("<p>Crop Recommendation and Yield Prediction using Machine Learning</p>", unsafe_allow_html=True)
 
 # ---------------- FIX PICKLE ----------------
 class CustomSelectorForSaving:
@@ -138,10 +158,8 @@ predict = st.sidebar.button("Run Prediction")
 # ---------------- MAIN ----------------
 if predict:
 
-    # Encode region
     region_enc = le_region.transform([region])[0]
 
-    # Create dataframe
     df = pd.DataFrame([{
         "Region": region_enc,
         "Soil_Moisture": soil,
@@ -185,11 +203,10 @@ if predict:
     X_proc = yield_preprocessor.transform(X_yield)
     X_sel = yield_selector.transform(X_proc)
 
-    xgb_pred = xgb_model.predict(X_sel)
-    final_yield = float(xgb_pred[0])
+    final_yield = float(xgb_model.predict(X_sel)[0])
 
-    # ---------------- OUTPUT ----------------
-    st.markdown("### Prediction Results")
+    # ---------------- RESULTS ----------------
+    st.markdown("## Prediction Results")
 
     col1, col2 = st.columns(2)
 
@@ -202,7 +219,7 @@ if predict:
     st.markdown("---")
 
     # ---------------- FEATURE CONTRIBUTION ----------------
-    st.subheader("Feature Contribution")
+    st.markdown("## Feature Contribution")
 
     feature_values = np.array([soil, humidity, temp, rain, solar, fert, pest])
     feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
@@ -214,32 +231,30 @@ if predict:
         "Contribution (%)": percent
     }).sort_values(by="Contribution (%)", ascending=True)
 
-    colors = plt.cm.Greens(np.linspace(0.4, 0.9, len(df_plot)))
-
     fig, ax = plt.subplots(figsize=(7,5))
 
-    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color=colors)
+    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
 
-    # Add labels
     for bar in bars:
         width = bar.get_width()
         ax.text(width + 0.5, bar.get_y() + bar.get_height()/2,
-                f"{width:.1f}%",
-                va='center', fontsize=10)
+                f"{width:.1f}%", va='center')
 
-    # Styling
     ax.set_xlabel("Contribution (%)")
-    ax.set_title("Feature Importance", color="#1B5E20")
+    ax.set_title("Feature Importance")
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
 
     ax.grid(False)
 
     plt.tight_layout()
 
-    st.pyplot(fig)
+    col1, col2, col3 = st.columns([1,2,1])
+    with col2:
+        st.pyplot(fig)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("© Smart Agriculture System | IEEE Project Presentation")
+st.markdown("<p style='text-align:center;'>© Smart Agriculture System | IEEE Conference Presentation</p>", unsafe_allow_html=True)
