@@ -300,46 +300,7 @@ if predict:
     # Display
     for r in rec:
         st.success(r)
-    # ---------------- SHAP AI EXPLANATION ----------------
-    st.markdown("## AI-Based Insights")
-    
-    if shap_available:
-        try:
-            explainer = shap.TreeExplainer(xgb_model)
-            shap_values = explainer.shap_values(X_sel)
-    
-            shap_importance = np.abs(shap_values).mean(axis=0)
-    
-            # Get correct feature names
-            try:
-                feature_names = yield_preprocessor.get_feature_names_out()
-            except:
-                feature_names = [f"Feature_{i}" for i in range(X_sel.shape[1])]
-    
-            selected_features = np.array(feature_names)[yield_selector.get_support()]
-    
-            # Top feature
-            top_idx = np.argmax(shap_importance)
-            top_feature = selected_features[top_idx]
-    
-            # Clean name
-            clean_feature = top_feature.replace("num__", "").replace("cat__", "")
-            clean_feature = clean_feature.replace("_", " ")
-    
-            st.info(f"Most influential factor affecting yield: {clean_feature}")
-    
-        except Exception as e:
-            st.warning("SHAP available but failed to compute explanation.")
-    
-    else:
-        st.warning("SHAP not installed. Showing rule-based insights instead.")
-    
-        if rain > 1000:
-            st.info("High rainfall significantly impacts yield.")
-        elif temp > 30:
-            st.info("Temperature plays a major role in crop growth.")
-        elif fert > 200:
-            st.info("Fertilizer usage influences yield.")
+   
     # ---------------- CROP ROTATION ----------------
     st.markdown("## Crop Rotation Recommendation")
     
