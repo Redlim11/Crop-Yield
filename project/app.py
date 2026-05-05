@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 
-# ---------------- IEEE CLEAN UI ----------------
+# ---------------- CLEAN IEEE UI ----------------
 st.markdown("""
 <style>
 
@@ -19,7 +19,7 @@ html, body, [class*="css"] {
 
 /* ---------- BACKGROUND ---------- */
 .stApp {
-    background-color: #F7FAF7;
+    background-color: #F6FAF6;
 }
 
 /* ---------- TITLE ---------- */
@@ -54,17 +54,29 @@ div[data-baseweb="select"] {
 
 ul[role="listbox"] {
     background-color: #FFFFFF !important;
-    color: #212121 !important;
+    color: #000 !important;
 }
 
-/* ---------- METRIC ---------- */
+/* ---------- METRIC FIX (IMPORTANT) ---------- */
 div[data-testid="metric-container"] {
     background: #FFFFFF;
     border: 1px solid #E0E0E0;
-    padding: 22px;
+    padding: 25px;
     border-radius: 12px;
-    box-shadow: 0px 3px 10px rgba(0,0,0,0.05);
     text-align: center;
+}
+
+/* FIX FADED TEXT */
+[data-testid="stMetricValue"] {
+    color: #1B5E20 !important;
+    font-size: 32px !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #424242 !important;
+    font-size: 16px !important;
 }
 
 /* ---------- BUTTON ---------- */
@@ -200,7 +212,7 @@ if predict:
 
     st.markdown("---")
 
-    # ---------------- FEATURE CONTRIBUTION ----------------
+    # ---------------- FEATURE GRAPH ----------------
     st.markdown("## Feature Contribution")
 
     feature_values = np.array([soil, humidity, temp, rain, solar, fert, pest])
@@ -213,7 +225,8 @@ if predict:
         "Contribution (%)": percent
     }).sort_values(by="Contribution (%)", ascending=True)
 
-    fig, ax = plt.subplots(figsize=(11,6))
+    # 🔥 BIGGER GRAPH
+    fig, ax = plt.subplots(figsize=(14,7))
 
     bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
 
@@ -223,11 +236,11 @@ if predict:
                 bar.get_y() + bar.get_height()/2,
                 f"{width:.1f}%",
                 va='center',
-                fontsize=12,
+                fontsize=13,
                 fontweight='bold')
 
-    ax.set_xlabel("Contribution (%)", fontsize=12)
-    ax.set_title("Feature Importance", fontsize=15, fontweight='bold')
+    ax.set_xlabel("Contribution (%)", fontsize=13)
+    ax.set_title("Feature Importance", fontsize=18, fontweight='bold')
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -237,7 +250,7 @@ if predict:
 
     plt.tight_layout()
 
-    col1, col2, col3 = st.columns([1,4,1])
+    col1, col2, col3 = st.columns([1,5,1])
     with col2:
         st.pyplot(fig)
 
