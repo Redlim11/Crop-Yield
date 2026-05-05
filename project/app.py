@@ -183,25 +183,47 @@ if predict:
 
     st.markdown("---")
 
-    # ---------------- PIE CHART ONLY ----------------
+    # ---------------- FEATURE CONTRIBUTION ----------------
     st.subheader("Feature Contribution")
 
-    feature_values = [soil, humidity, temp, rain, solar, fert, pest]
+    feature_values = np.array([soil, humidity, temp, rain, solar, fert, pest])
     feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
     
-    # Sort for better readability
+    # Normalize for percentage contribution
+    percent = (feature_values / feature_values.sum()) * 100
+    
+    # Create dataframe
     df_plot = pd.DataFrame({
         "Feature": feature_names,
-        "Value": feature_values
-    }).sort_values(by="Value", ascending=True)
+        "Contribution (%)": percent
+    }).sort_values(by="Contribution (%)", ascending=True)
     
-    fig, ax = plt.subplots()
+    # Color gradient (light → dark green)
+    colors = plt.cm.Greens(np.linspace(0.4, 0.9, len(df_plot)))
     
-    ax.barh(df_plot["Feature"], df_plot["Value"], color="#2E7D32")
-    ax.set_xlabel("Contribution")
-    ax.set_title("Feature Importance")
+    fig, ax = plt.subplots(figsize=(7,5))
     
-st.pyplot(fig)
+    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color=colors)
+    
+    # ---- Add value labels ----
+    for bar in bars:
+        width = bar.get_width()
+        ax.text(width + 0.5, bar.get_y() + bar.get_height()/2,
+                f"{width:.1f}%",
+                va='center', fontsize=10)
+    
+    # ---- Styling ----
+    ax.set_xlabel("Contribution (%)", fontsize=11)
+    ax.set_title("Feature Importance", fontsize=13, color="#1B5E20")
+    
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    
+    ax.grid(axis='x', linestyle='--', alpha=0.3)
+    
+    plt.tight_layout()
+    
+    st.pyplot(fig)
 # ---------------- FOOTER ----------------
 st.markdown("---")
 st.markdown("© Smart Agriculture System | IEEE Project Presentation")
