@@ -220,6 +220,7 @@ if predict:
     ax.spines['right'].set_visible(False)
     
     ax.grid(axis='x', alpha=0.3)
+    ax.grid(False)
     
     plt.tight_layout()
     
