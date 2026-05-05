@@ -7,20 +7,69 @@ import matplotlib.pyplot as plt
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 
-# ---------------- CUSTOM GREEN THEME ----------------
+# ---------------- IEEE CLEAN GREEN THEME ----------------
 st.markdown("""
 <style>
-    .stApp {
-        background-color: #F1F8F4;
-    }
-    h1, h2, h3 {
-        color: #1B5E20;
-    }
-    .stMetric {
-        background-color: #E8F5E9;
-        padding: 15px;
-        border-radius: 10px;
-    }
+
+/* ---------- GLOBAL ---------- */
+html, body, [class*="css"] {
+    font-family: 'Segoe UI', sans-serif;
+    color: #212121 !important;
+}
+
+.stApp {
+    background-color: #FAFAFA;
+}
+
+/* ---------- HEADINGS ---------- */
+h1 {
+    color: #1B5E20 !important;
+    font-weight: 700;
+}
+
+h2, h3 {
+    color: #2E7D32 !important;
+}
+
+/* ---------- SIDEBAR ---------- */
+section[data-testid="stSidebar"] {
+    background-color: #FFFFFF;
+    border-right: 1px solid #E0E0E0;
+}
+
+/* ---------- METRIC CARDS ---------- */
+div[data-testid="metric-container"] {
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 3px 6px rgba(0,0,0,0.05);
+}
+
+/* ---------- FIX FADED TEXT ---------- */
+[data-testid="stMetricValue"] {
+    color: #1B5E20 !important;
+    font-weight: 700;
+    opacity: 1 !important;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #424242 !important;
+}
+
+/* ---------- BUTTON ---------- */
+.stButton>button {
+    background-color: #2E7D32;
+    color: white;
+    border-radius: 6px;
+    padding: 10px 16px;
+    border: none;
+}
+
+.stButton>button:hover {
+    background-color: #1B5E20;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -28,7 +77,7 @@ st.markdown("""
 st.title("Smart Agriculture Decision Support System")
 st.markdown("Crop Recommendation and Yield Prediction using Machine Learning")
 
-# ---------------- FIX PICKLE ERROR ----------------
+# ---------------- FIX PICKLE ----------------
 class CustomSelectorForSaving:
     def __init__(self, mask):
         self.mask = mask
@@ -66,13 +115,15 @@ solar = st.sidebar.slider("Solar Radiation", 0.0, 10.0, 5.0)
 fert = st.sidebar.slider("Fertilizer Residuals", 0.0, 500.0, 100.0)
 pest = st.sidebar.slider("Pesticide Use", 0.0, 500.0, 100.0)
 
-predict = st.sidebar.button("Predict")
+predict = st.sidebar.button("Run Prediction")
 
 # ---------------- MAIN ----------------
 if predict:
 
+    # Encode region
     region_enc = le_region.transform([region])[0]
 
+    # Create dataframe
     df = pd.DataFrame([{
         "Region": region_enc,
         "Soil_Moisture": soil,
@@ -97,12 +148,12 @@ if predict:
         'Solar_Temp','Chemical_Load','Moisture_Balance'
     ]
 
-    # ---------------- CROP ----------------
+    # ---------------- CROP PREDICTION ----------------
     X_crop = df[crop_cols]
     pred_crop = crop_model.predict(X_crop)
     crop_name = le_crop.inverse_transform(pred_crop)[0]
 
-    # ---------------- YIELD ----------------
+    # ---------------- YIELD PREDICTION ----------------
     df["Crop_Type"] = pred_crop[0]
     df["Year"] = 2000
 
@@ -120,6 +171,8 @@ if predict:
     final_yield = float(xgb_pred[0])
 
     # ---------------- OUTPUT ----------------
+    st.markdown("### Prediction Results")
+
     col1, col2 = st.columns(2)
 
     with col1:
@@ -130,8 +183,8 @@ if predict:
 
     st.markdown("---")
 
-    # ---------------- GRAPH 1: FEATURE BAR ----------------
-    st.subheader("Input Feature Analysis")
+    # ---------------- PIE CHART ONLY ----------------
+    st.subheader("Input Feature Contribution")
 
     feature_values = [soil, humidity, temp, rain, solar, fert, pest]
     feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
@@ -139,39 +192,21 @@ if predict:
     colors = ["#A5D6A7","#81C784","#66BB6A","#4CAF50","#388E3C","#2E7D32","#1B5E20"]
 
     fig, ax = plt.subplots()
-    ax.barh(feature_names, feature_values, color=colors)
-    ax.set_title("Input Parameters")
-    ax.grid(False)
-    st.pyplot(fig)
+    fig.patch.set_facecolor('white')
 
-    # ---------------- GRAPH 2: DONUT CHART ----------------
-    st.subheader("Resource Contribution")
-
-    fig2, ax2 = plt.subplots()
-    ax2.pie(
+    ax.pie(
         feature_values,
         labels=feature_names,
         autopct="%1.1f%%",
         colors=colors,
-        wedgeprops={'width':0.4}
+        textprops={'color':"#212121"},
+        wedgeprops={'edgecolor':'white'}
     )
-    ax2.set_title("Input Contribution Distribution")
-    st.pyplot(fig2)
 
-    # ---------------- GRAPH 3: YIELD COMPARISON ----------------
-    st.subheader("Yield Comparison")
+    ax.set_title("Feature Contribution Distribution", color="#1B5E20")
 
-    avg_yield = 50
-
-    fig3, ax3 = plt.subplots()
-    ax3.bar(
-        ["Predicted", "Average"],
-        [final_yield, avg_yield],
-        color=["#1B5E20","#81C784"]
-    )
-    ax3.set_ylabel("Yield")
-    st.pyplot(fig3)
+    st.pyplot(fig)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("Smart Agriculture System | Green AI Deployment")
+st.markdown("© Smart Agriculture System | IEEE Project Presentation")
