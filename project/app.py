@@ -245,41 +245,59 @@ if predict:
     st.markdown("---")
 
     # ---------------- FARMER RECOMMENDATIONS ----------------
-    st.markdown("## Smart Farmer Recommendations")
+    st.subheader("Farmer Recommendations")
     
     rec = []
     
-    # Rainfall logic
+    # 🌧️ Rainfall analysis
     if rain < 300:
-        rec.append("Insufficient rainfall detected. Use drip irrigation or sprinkler systems to maintain soil moisture.")
-    elif rain > 1500:
-        rec.append("Excess rainfall detected. Ensure proper drainage to prevent waterlogging.")
+        rec.append("Rainfall is insufficient (<300 mm). Adopt drip irrigation or sprinkler systems to maintain soil moisture.")
+    elif rain > 1200:
+        rec.append("High rainfall detected (>1200 mm). Ensure proper drainage to prevent waterlogging and root damage.")
     
-    # Soil moisture
+    # 🌱 Soil moisture
     if soil < 3:
-        rec.append("Soil moisture is low. Apply mulching and increase irrigation frequency.")
+        rec.append("Soil moisture is low. Apply mulching and increase irrigation frequency to retain water.")
     elif soil > 8:
-        rec.append("Soil moisture is high. Avoid over-irrigation to prevent root damage.")
+        rec.append("Excess soil moisture detected. Improve drainage to avoid root diseases.")
     
-    # Temperature
+    # 🌡️ Temperature suitability (crop-aware)
     if temp > 35:
-        rec.append("High temperature stress. Consider heat-resistant crop varieties.")
-    elif temp < 10:
-        rec.append("Low temperature risk. Use protective cultivation methods.")
+        rec.append(f"High temperature (>35°C) may stress {crop_name}. Consider heat-resistant varieties or shade management.")
+    elif temp < 15:
+        rec.append(f"Low temperature (<15°C) may slow growth of {crop_name}. Adjust sowing time or use protective cultivation.")
     
-    # Fertilizer
+    # 💧 Humidity
+    if humidity < 30:
+        rec.append("Low humidity may cause plant stress. Increase irrigation and reduce evaporation losses.")
+    elif humidity > 85:
+        rec.append("High humidity may promote fungal diseases. Apply preventive fungicides and improve airflow.")
+    
+    # 🧪 Fertilizer usage
     if fert > 300:
-        rec.append("Excess fertilizer usage detected. Reduce input to avoid soil degradation.")
+        rec.append("Excess fertilizer detected. Overuse can degrade soil health. Follow soil testing and balanced NPK application.")
     elif fert < 50:
-        rec.append("Low nutrient levels. Apply balanced NPK fertilizers.")
+        rec.append("Low fertilizer input detected. Consider applying balanced nutrients based on soil testing.")
     
-    # Pesticide
+    # 🐛 Pesticide usage
     if pest > 300:
-        rec.append("High pesticide usage. Adopt Integrated Pest Management (IPM).")
+        rec.append("High pesticide usage detected. Switch to Integrated Pest Management (IPM) and biological control methods.")
+    elif pest < 50:
+        rec.append("Low pesticide usage. Monitor crops regularly for early pest detection.")
     
+    # 🌾 Crop-specific recommendation
+    if crop_name.lower() == "rice":
+        rec.append("Rice requires standing water. Maintain field flooding during vegetative stages.")
+    elif crop_name.lower() == "wheat":
+        rec.append("Wheat performs best in well-drained soils. Avoid excess irrigation during maturity stage.")
+    elif crop_name.lower() == "maize":
+        rec.append("Maize needs good sunlight and moderate water. Ensure proper spacing for yield optimization.")
+    
+    # ✅ fallback
     if not rec:
-        rec.append("All conditions are optimal. Maintain current farming practices.")
+        rec.append("All environmental conditions are optimal. Maintain current farming practices.")
     
+    # Display
     for r in rec:
         st.success(r)
     # ---------------- SHAP AI EXPLANATION ----------------
@@ -301,10 +319,21 @@ if predict:
         selected_features = np.array(feature_names)[yield_selector.get_support()]
     
         # Top feature
-        top_idx = np.argmax(shap_importance)
-        top_feature = selected_features[top_idx]
-    
-        st.info(f"Most influential factor affecting yield: {top_feature}")
+        feature_labels = {
+            "Soil Moisture": "Soil Moisture Level",
+            "Humidity": "Humidity",
+            "Temperature": "Temperature",
+            "Rainfall": "Rainfall",
+            "Solar Radiation": "Sunlight Hours",
+            "Fertilizer Residuals": "Fertilizer Usage",
+            "Pesticide Use": "Pesticide Usage"
+        }
+        clean_feature = raw_feature.replace("num__", "").replace("cat__", "")
+        clean_feature = clean_feature.replace("_", " ")
+        
+        friendly_name = feature_labels.get(clean_feature, clean_feature)
+        
+        st.info(f"Most influential factor affecting Yield: {friendly_name}")
     
         # Smart AI recommendation
         if "Rainfall" in top_feature:
