@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 
-# ---------------- CLEAN IEEE UI ----------------
+# ---------------- IEEE CLEAN UI ----------------
 st.markdown("""
 <style>
 
@@ -39,10 +39,21 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid #E0E0E0;
 }
 
-/* FIX SIDEBAR */
 section[data-testid="stSidebar"] > div {
     position: fixed;
     width: 300px;
+}
+
+/* ---------- INPUT LABELS ---------- */
+label {
+    color: #1B5E20 !important;
+    font-weight: 600 !important;
+}
+
+/* ---------- SLIDER VALUE ---------- */
+.stSlider span {
+    color: #2E7D32 !important;
+    font-weight: 600 !important;
 }
 
 /* ---------- SELECTBOX ---------- */
@@ -52,12 +63,7 @@ div[data-baseweb="select"] {
     border-radius: 6px !important;
 }
 
-ul[role="listbox"] {
-    background-color: #FFFFFF !important;
-    color: #000 !important;
-}
-
-/* ---------- METRIC FIX (IMPORTANT) ---------- */
+/* ---------- METRIC ---------- */
 div[data-testid="metric-container"] {
     background: #FFFFFF;
     border: 1px solid #E0E0E0;
@@ -66,17 +72,14 @@ div[data-testid="metric-container"] {
     text-align: center;
 }
 
-/* FIX FADED TEXT */
 [data-testid="stMetricValue"] {
     color: #1B5E20 !important;
     font-size: 32px !important;
     font-weight: 700 !important;
-    opacity: 1 !important;
 }
 
 [data-testid="stMetricLabel"] {
     color: #424242 !important;
-    font-size: 16px !important;
 }
 
 /* ---------- BUTTON ---------- */
@@ -89,10 +92,6 @@ div[data-testid="metric-container"] {
     padding: 14px;
     border-radius: 8px;
     border: none;
-}
-
-.stButton>button:hover {
-    transform: scale(1.03);
 }
 
 /* ---------- SPACING ---------- */
@@ -132,13 +131,25 @@ def load_models():
 
     return crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region
 
-
 crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region = load_models()
+
+# ---------------- ALL INDIA STATES + UT ----------------
+india_regions = [
+    "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
+    "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand",
+    "Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur",
+    "Meghalaya","Mizoram","Nagaland","Odisha","Punjab",
+    "Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
+    "Uttar Pradesh","Uttarakhand","West Bengal",
+    "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry"
+]
 
 # ---------------- SIDEBAR ----------------
 st.sidebar.header("Input Parameters")
 
-region = st.sidebar.selectbox("Region", le_region.classes_)
+region = st.sidebar.selectbox("Region", india_regions)
+
 soil = st.sidebar.slider("Soil Moisture", 0.0, 10.0, 5.0)
 humidity = st.sidebar.slider("Humidity", 0.0, 100.0, 60.0)
 temp = st.sidebar.slider("Temperature", 0.0, 50.0, 25.0)
@@ -152,7 +163,11 @@ predict = st.sidebar.button("🚀 Run Prediction")
 # ---------------- MAIN ----------------
 if predict:
 
-    region_enc = le_region.transform([region])[0]
+    # Safe encoding
+    if region in le_region.classes_:
+        region_enc = le_region.transform([region])[0]
+    else:
+        region_enc = le_region.transform([le_region.classes_[0]])[0]
 
     df = pd.DataFrame([{
         "Region": region_enc,
@@ -178,12 +193,11 @@ if predict:
         'Solar_Temp','Chemical_Load','Moisture_Balance'
     ]
 
-    # ---------------- CROP ----------------
-    X_crop = df[crop_cols]
-    pred_crop = crop_model.predict(X_crop)
+    # Crop Prediction
+    pred_crop = crop_model.predict(df[crop_cols])
     crop_name = le_crop.inverse_transform(pred_crop)[0]
 
-    # ---------------- YIELD ----------------
+    # Yield Prediction
     df["Crop_Type"] = pred_crop[0]
     df["Year"] = 2000
 
@@ -193,10 +207,8 @@ if predict:
         'Temp_Rain','Humidity_Soil','Solar_Temp','Chemical_Load','Moisture_Balance'
     ]
 
-    X_yield = df[yield_cols]
-    X_proc = yield_preprocessor.transform(X_yield)
+    X_proc = yield_preprocessor.transform(df[yield_cols])
     X_sel = yield_selector.transform(X_proc)
-
     final_yield = float(xgb_model.predict(X_sel)[0])
 
     # ---------------- RESULTS ----------------
@@ -225,22 +237,17 @@ if predict:
         "Contribution (%)": percent
     }).sort_values(by="Contribution (%)", ascending=True)
 
-    # 🔥 BIGGER GRAPH
-    fig, ax = plt.subplots(figsize=(14,7))
+    fig, ax = plt.subplots(figsize=(16,8))
 
     bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
 
     for bar in bars:
         width = bar.get_width()
-        ax.text(width + 1,
-                bar.get_y() + bar.get_height()/2,
-                f"{width:.1f}%",
-                va='center',
-                fontsize=13,
-                fontweight='bold')
+        ax.text(width + 1, bar.get_y() + bar.get_height()/2,
+                f"{width:.1f}%", va='center', fontsize=13)
 
-    ax.set_xlabel("Contribution (%)", fontsize=13)
-    ax.set_title("Feature Importance", fontsize=18, fontweight='bold')
+    ax.set_xlabel("Contribution (%)")
+    ax.set_title("Feature Importance")
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
