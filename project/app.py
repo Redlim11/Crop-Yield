@@ -5,11 +5,79 @@ import joblib
 import matplotlib.pyplot as plt
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="Smart Agriculture System", layout="wide")
+st.set_page_config(
+    page_title="Smart Agriculture System",
+    layout="wide"
+)
+
+# ---------------- IEEE STYLE THEME ----------------
+st.markdown("""
+<style>
+
+/* -------- Background -------- */
+.stApp {
+    background-color: #FAFAFA;
+}
+
+/* -------- Typography -------- */
+html, body, [class*="css"]  {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* -------- Title -------- */
+h1 {
+    color: #1B5E20;
+    font-size: 34px;
+    font-weight: 600;
+}
+
+h2, h3 {
+    color: #2E7D32;
+    font-weight: 500;
+}
+
+/* -------- Cards -------- */
+.block-container {
+    padding-top: 2rem;
+}
+
+/* -------- Metrics Card -------- */
+div[data-testid="metric-container"] {
+    background-color: #F1F8F4;
+    border: 1px solid #E0E0E0;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+/* -------- Sidebar -------- */
+section[data-testid="stSidebar"] {
+    background-color: #F5F5F5;
+}
+
+/* -------- Buttons -------- */
+.stButton>button {
+    background-color: #2E7D32;
+    color: white;
+    border-radius: 8px;
+    padding: 10px;
+    border: none;
+}
+
+.stButton>button:hover {
+    background-color: #1B5E20;
+}
+
+/* -------- Divider -------- */
+hr {
+    border: 0.5px solid #E0E0E0;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 # ---------------- TITLE ----------------
 st.title("Smart Agriculture Decision Support System")
-st.markdown("Crop Recommendation and Yield Prediction using Machine Learning")
+st.markdown("A Machine Learning-Based Framework for Crop Recommendation and Yield Prediction")
 
 # ---------------- FIX PICKLE ERROR ----------------
 class CustomSelectorForSaving:
@@ -49,15 +117,13 @@ solar = st.sidebar.slider("Solar Radiation", 0.0, 10.0, 5.0)
 fert = st.sidebar.slider("Fertilizer Residuals", 0.0, 500.0, 100.0)
 pest = st.sidebar.slider("Pesticide Use", 0.0, 500.0, 100.0)
 
-predict = st.sidebar.button("Predict")
+predict = st.sidebar.button("Run Prediction")
 
 # ---------------- MAIN ----------------
 if predict:
 
-    # Encode region
     region_enc = le_region.transform([region])[0]
 
-    # Create dataframe
     df = pd.DataFrame([{
         "Region": region_enc,
         "Soil_Moisture": soil,
@@ -69,7 +135,7 @@ if predict:
         "Pesticide_Use": pest
     }])
 
-    # ---------------- FEATURE ENGINEERING ----------------
+    # Feature Engineering
     df["Temp_Rain"] = df["Temperature"] * df["Rainfall"]
     df["Humidity_Soil"] = df["Humidity"] * df["Soil_Moisture"]
     df["Solar_Temp"] = df["Solar_Radiation"] * df["Temperature"]
@@ -82,12 +148,12 @@ if predict:
         'Solar_Temp','Chemical_Load','Moisture_Balance'
     ]
 
-    # ---------------- CROP PREDICTION ----------------
+    # ---------------- CROP ----------------
     X_crop = df[crop_cols]
     pred_crop = crop_model.predict(X_crop)
     crop_name = le_crop.inverse_transform(pred_crop)[0]
 
-    # ---------------- YIELD PREDICTION ----------------
+    # ---------------- YIELD ----------------
     df["Crop_Type"] = pred_crop[0]
     df["Year"] = 2000
 
@@ -98,7 +164,6 @@ if predict:
     ]
 
     X_yield = df[yield_cols]
-
     X_proc = yield_preprocessor.transform(X_yield)
     X_sel = yield_selector.transform(X_proc)
 
@@ -106,6 +171,8 @@ if predict:
     final_yield = float(xgb_pred[0])
 
     # ---------------- OUTPUT ----------------
+    st.markdown("### Prediction Results")
+
     col1, col2 = st.columns(2)
 
     with col1:
@@ -116,28 +183,34 @@ if predict:
 
     st.markdown("---")
 
-    # ---------------- VISUALIZATION ----------------
-    st.subheader("Input Feature Analysis")
+    # ---------------- GRAPH 1 ----------------
+    st.subheader("Feature Analysis")
 
     feature_values = [soil, humidity, temp, rain, solar, fert, pest]
     feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
 
     fig, ax = plt.subplots()
-    ax.barh(feature_names, feature_values)
-    ax.set_xlabel("Values")
-    ax.set_title("Input Parameters")
+    ax.barh(feature_names, feature_values, color="#2E7D32")
+    ax.set_xlabel("Value")
+    ax.set_title("Input Features")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+
     st.pyplot(fig)
 
-    # ---------------- YIELD COMPARISON ----------------
+    # ---------------- GRAPH 2 ----------------
     st.subheader("Yield Comparison")
 
-    avg_yield = 50  # baseline reference
+    avg_yield = 50
 
     fig2, ax2 = plt.subplots()
-    ax2.bar(["Predicted Yield", "Average Yield"], [final_yield, avg_yield])
+    ax2.bar(["Predicted", "Baseline"], [final_yield, avg_yield], color=["#1B5E20", "#A5D6A7"])
     ax2.set_ylabel("Yield")
+    ax2.spines["top"].set_visible(False)
+    ax2.spines["right"].set_visible(False)
+
     st.pyplot(fig2)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("Smart Agriculture System | Machine Learning Deployment")
+st.markdown("© Smart Agriculture Decision Support System | IEEE Project Presentation")
