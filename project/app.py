@@ -184,57 +184,24 @@ if predict:
     st.markdown("---")
 
     # ---------------- PIE CHART ONLY ----------------
-    st.subheader("Input Feature Contribution")
+   st.subheader("Feature Contribution")
+
+    feature_values = [soil, humidity, temp, rain, solar, fert, pest]
+    feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
     
-    feature_values = np.array([soil, humidity, temp, rain, solar, fert, pest])
-    feature_names = np.array(["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"])
+    # Sort for better readability
+    df_plot = pd.DataFrame({
+        "Feature": feature_names,
+        "Value": feature_values
+    }).sort_values(by="Value", ascending=True)
     
-    # ---- REMOVE VERY SMALL VALUES (<2%) ----
-    mask = feature_values > (0.02 * feature_values.sum())
-    feature_values = feature_values[mask]
-    feature_names = feature_names[mask]
+    fig, ax = plt.subplots()
     
-    # ---- COLOR PALETTE (BETTER CONTRAST) ----
-    colors = ["#66BB6A", "#4CAF50", "#43A047", "#388E3C", "#2E7D32", "#1B5E20"]
+    ax.barh(df_plot["Feature"], df_plot["Value"], color="#2E7D32")
+    ax.set_xlabel("Contribution")
+    ax.set_title("Feature Importance")
     
-    fig, ax = plt.subplots(figsize=(6.5, 6.5))
-    
-    # ---- DONUT ----
-    wedges, _, autotexts = ax.pie(
-        feature_values,
-        autopct=lambda p: f'{p:.1f}%' if p > 5 else '',
-        startangle=90,
-        colors=colors[:len(feature_values)],
-        wedgeprops={'width':0.38, 'edgecolor':'white'},
-        pctdistance=0.72,
-        textprops={'fontsize':11}
-    )
-    
-    # ---- CENTER TEXT ----
-    ax.text(
-        0, 0,
-        "Feature\nContribution",
-        ha='center', va='center',
-        fontsize=13, fontweight='bold',
-        color="#1B5E20"
-    )
-    
-    # ---- LEGEND ----
-    ax.legend(
-        wedges,
-        feature_names,
-        title="Features",
-        loc="center left",
-        bbox_to_anchor=(1, 0.5),
-        fontsize=10,
-        title_fontsize=11,
-        frameon=False
-    )
-    
-    ax.set_title("Input Feature Contribution", fontsize=13, color="#1B5E20")
-    
-    plt.tight_layout()
-    st.pyplot(fig)
+st.pyplot(fig)
 # ---------------- FOOTER ----------------
 st.markdown("---")
 st.markdown("© Smart Agriculture System | IEEE Project Presentation")
