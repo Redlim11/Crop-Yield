@@ -97,6 +97,16 @@ div[data-testid="metric-container"] {
     border-radius: 8px;
     border: none;
 }
+/* ---------- SUCCESS BOX TEXT DARK GREEN ---------- */
+div[data-testid="stAlert"] {
+    background-color: #E8F5E9 !important;   /* light green background */
+    border-left: 5px solid #1B5E20 !important;
+}
+
+div[data-testid="stAlert"] p {
+    color: #1B5E20 !important;   /* DARK GREEN TEXT */
+    font-weight: 600;
+}
 
 /* ---------- SPACING ---------- */
 .block-container {
@@ -332,8 +342,14 @@ if predict:
 
     fig, ax = plt.subplots(figsize=(16,8))
 
-    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
-
+    # Normalize values for color scaling
+    norm = plt.Normalize(df_plot["Contribution (%)"].min(), df_plot["Contribution (%)"].max())
+    
+    # Use green gradient (light → dark)
+    colors = plt.cm.Greens(norm(df_plot["Contribution (%)"]))
+    
+    # Plot
+    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color=colors)
     for bar in bars:
         width = bar.get_width()
         ax.text(width + 1, bar.get_y() + bar.get_height()/2,
