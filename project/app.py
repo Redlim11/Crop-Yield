@@ -251,7 +251,7 @@ if predict:
     st.markdown("---")
 
     # ---------------- FARMER RECOMMENDATIONS ----------------
-    st.subheader("## Farmer Recommendations")
+    st.markdown("## Farmer Recommendations")
     
     rec = []
     
