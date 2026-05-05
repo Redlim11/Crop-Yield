@@ -310,15 +310,13 @@ if predict:
     
             shap_importance = np.abs(shap_values).mean(axis=0)
     
-            raw_feature = selected_features[top_idx]
+            top_idx = np.argmax(shap_importance)
+            top_feature = selected_features[top_idx]
 
-            # Clean name
-            clean_feature = raw_feature.replace("num__", "").replace("cat__", "")
+            clean_feature = top_feature.replace("num__", "").replace("cat__", "")
             
-            # Optional: make nicer formatting
-            clean_feature = clean_feature.replace("_", " ")
-            
-            st.info(f"Most influential factor affecting yield: {clean_feature}")
+
+            st.info(f"Most influential feature index: {clean_feature}")
     
         except:
             st.warning("SHAP available but failed to compute explanation.")
