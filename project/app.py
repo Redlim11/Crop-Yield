@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 import io
-import shap
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
@@ -243,79 +242,26 @@ if predict:
         st.metric("Predicted Yield", f"{final_yield:.2f}")
 
     st.markdown("---")
-
     # ---------------- FARMER RECOMMENDATIONS ----------------
     st.subheader("Farmer Recommendations")
-    
+
     rec = []
-    
-    # 🌧️ Rainfall analysis
+
     if rain < 300:
-        rec.append("Rainfall is insufficient (<300 mm). Adopt drip irrigation or sprinkler systems to maintain soil moisture.")
-    elif rain > 1200:
-        rec.append("High rainfall detected (>1200 mm). Ensure proper drainage to prevent waterlogging and root damage.")
-    
-    # 🌱 Soil moisture
+        rec.append("Low rainfall detected → consider irrigation support.")
     if soil < 3:
-        rec.append("Soil moisture is low. Apply mulching and increase irrigation frequency to retain water.")
-    elif soil > 8:
-        rec.append("Excess soil moisture detected. Improve drainage to avoid root diseases.")
-    
-    # 🌡️ Temperature suitability (crop-aware)
-    if temp > 35:
-        rec.append(f"High temperature (>35°C) may stress {crop_name}. Consider heat-resistant varieties or shade management.")
-    elif temp < 15:
-        rec.append(f"Low temperature (<15°C) may slow growth of {crop_name}. Adjust sowing time or use protective cultivation.")
-    
-    # 💧 Humidity
-    if humidity < 30:
-        rec.append("Low humidity may cause plant stress. Increase irrigation and reduce evaporation losses.")
-    elif humidity > 85:
-        rec.append("High humidity may promote fungal diseases. Apply preventive fungicides and improve airflow.")
-    
-    # 🧪 Fertilizer usage
+        rec.append("Low soil moisture → improve irrigation or mulching.")
     if fert > 300:
-        rec.append("Excess fertilizer detected. Overuse can degrade soil health. Follow soil testing and balanced NPK application.")
-    elif fert < 50:
-        rec.append("Low fertilizer input detected. Consider applying balanced nutrients based on soil testing.")
-    
-    # 🐛 Pesticide usage
+        rec.append("High fertilizer usage → reduce for sustainable farming.")
     if pest > 300:
-        rec.append("High pesticide usage detected. Switch to Integrated Pest Management (IPM) and biological control methods.")
-    elif pest < 50:
-        rec.append("Low pesticide usage. Monitor crops regularly for early pest detection.")
-    
-    # 🌾 Crop-specific recommendation
-    if crop_name.lower() == "rice":
-        rec.append("Rice requires standing water. Maintain field flooding during vegetative stages.")
-    elif crop_name.lower() == "wheat":
-        rec.append("Wheat performs best in well-drained soils. Avoid excess irrigation during maturity stage.")
-    elif crop_name.lower() == "maize":
-        rec.append("Maize needs good sunlight and moderate water. Ensure proper spacing for yield optimization.")
-    
-    # ✅ fallback
+        rec.append("High pesticide use → consider organic pest control.")
+
     if not rec:
-        rec.append("All environmental conditions are optimal. Maintain current farming practices.")
-    
-    # Display
+        rec.append("Conditions are optimal for farming.")
+
     for r in rec:
         st.success(r)
-   
-    # ---------------- CROP ROTATION ----------------
-    st.markdown("## Crop Rotation Recommendation")
-    
-    rotation_map = {
-        "Rice": "Follow with pulses (lentil/gram) to restore nitrogen in soil.",
-        "Wheat": "Rotate with legumes (chickpea/pea) for soil fertility improvement.",
-        "Maize": "Rotate with soybean or groundnut to enhance nitrogen fixation.",
-        "Sugarcane": "Rotate with legumes or vegetables to avoid soil depletion.",
-        "Soybean": "Rotate with cereals like wheat or maize for balanced nutrient usage."
-    }
-    
-    rotation_advice = rotation_map.get(crop_name, 
-        "Adopt crop rotation with legumes to maintain long-term soil fertility.")
-    
-    st.success(rotation_advice)
+        
     # ---------------- FEATURE GRAPH ----------------
     st.markdown("## Feature Contribution")
 
@@ -376,8 +322,7 @@ if predict:
             content.append(Paragraph(f"• {r}", styles["Normal"]))
 
         content.append(Spacer(1, 10))
-        content.append(Paragraph("Crop Rotation Advice:", styles["Heading2"]))
-        content.append(Paragraph(rotation_advice, styles["Normal"]))
+
         # Save graph into buffer (NOT file)
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")
