@@ -27,21 +27,10 @@ h1 {
     color: #1B5E20 !important;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 10px;
 }
 
-h2 {
+h2, h3 {
     color: #2E7D32 !important;
-}
-
-h3 {
-    color: #2E7D32 !important;
-}
-
-/* ---------- TEXT ---------- */
-p {
-    text-align: center;
-    color: #616161;
 }
 
 /* ---------- SIDEBAR ---------- */
@@ -56,18 +45,25 @@ section[data-testid="stSidebar"] > div {
     width: 300px;
 }
 
-/* ---------- SELECTBOX ---------- */
+/* ---------- SELECTBOX MAIN ---------- */
 div[data-baseweb="select"] {
     background-color: #FFFFFF !important;
     border: 1px solid #C8E6C9 !important;
     border-radius: 6px !important;
 }
 
+/* ---------- DROPDOWN OPTIONS ---------- */
+ul[role="listbox"] {
+    background-color: #FFFFFF !important;
+    color: black !important;
+}
+
+/* ---------- SELECT TEXT ---------- */
 div[data-baseweb="select"] * {
     color: #1B5E20 !important;
 }
 
-/* ---------- METRIC CARDS ---------- */
+/* ---------- METRIC ---------- */
 div[data-testid="metric-container"] {
     background: #FFFFFF;
     border: 1px solid #E0E0E0;
@@ -77,31 +73,24 @@ div[data-testid="metric-container"] {
     text-align: center;
 }
 
-/* ---------- METRIC TEXT ---------- */
-[data-testid="stMetricValue"] {
-    color: #1B5E20 !important;
-    font-weight: 700;
-    font-size: 28px;
-}
-
-[data-testid="stMetricLabel"] {
-    color: #757575 !important;
-}
-
-/* ---------- BUTTON ---------- */
+/* ---------- BUTTON (IMPORTANT FIX) ---------- */
 .stButton>button {
+    width: 100%;
     background-color: #2E7D32;
     color: white;
-    border-radius: 6px;
-    padding: 10px 18px;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px;
+    border-radius: 8px;
     border: none;
 }
 
 .stButton>button:hover {
     background-color: #1B5E20;
+    transform: scale(1.02);
 }
 
-/* ---------- CONTENT SPACING ---------- */
+/* ---------- SPACING ---------- */
 .block-container {
     padding-top: 2rem;
     padding-left: 3rem;
