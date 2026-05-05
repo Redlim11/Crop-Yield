@@ -302,7 +302,7 @@ if predict:
         st.success(r)
     # ---------------- SHAP AI EXPLANATION ----------------
     st.markdown("## AI-Based Insights")
-
+    
     if shap_available:
         try:
             explainer = shap.TreeExplainer(xgb_model)
@@ -310,10 +310,15 @@ if predict:
     
             shap_importance = np.abs(shap_values).mean(axis=0)
     
-            top_idx = np.argmax(shap_importance)
-    
-            st.info(f"Most influential feature index: {top_idx}")
-            st.success("AI-based explanation generated successfully.")
+            raw_feature = selected_features[top_idx]
+
+            # Clean name
+            clean_feature = raw_feature.replace("num__", "").replace("cat__", "")
+            
+            # Optional: make nicer formatting
+            clean_feature = clean_feature.replace("_", " ")
+            
+            st.info(f"Most influential factor affecting yield: {clean_feature}")
     
         except:
             st.warning("SHAP available but failed to compute explanation.")
