@@ -4,66 +4,45 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
+
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 
 # ---------------- IEEE CLEAN UI ----------------
 st.markdown("""
 <style>
-
-/* ---------- GLOBAL ---------- */
 html, body, [class*="css"] {
     font-family: 'Segoe UI', sans-serif;
     color: #212121;
 }
-
-/* ---------- BACKGROUND ---------- */
 .stApp {
     background-color: #F6FAF6;
 }
-
-/* ---------- TITLE ---------- */
 h1 {
     color: #1B5E20 !important;
     font-weight: 700;
     text-align: center;
 }
-
 h2 {
     color: #2E7D32 !important;
 }
-
-/* ---------- SIDEBAR ---------- */
 section[data-testid="stSidebar"] {
     background-color: #FFFFFF;
     border-right: 1px solid #E0E0E0;
 }
-
 section[data-testid="stSidebar"] > div {
     position: fixed;
     width: 300px;
 }
-
-/* ---------- INPUT LABELS ---------- */
 label {
     color: #1B5E20 !important;
     font-weight: 600 !important;
 }
-
-/* ---------- SLIDER VALUE ---------- */
 .stSlider span {
     color: #2E7D32 !important;
-    font-weight: 600 !important;
 }
-
-/* ---------- SELECTBOX ---------- */
-div[data-baseweb="select"] {
-    background-color: #FFFFFF !important;
-    border: 1px solid #A5D6A7 !important;
-    border-radius: 6px !important;
-}
-
-/* ---------- METRIC ---------- */
 div[data-testid="metric-container"] {
     background: #FFFFFF;
     border: 1px solid #E0E0E0;
@@ -71,36 +50,19 @@ div[data-testid="metric-container"] {
     border-radius: 12px;
     text-align: center;
 }
-
 [data-testid="stMetricValue"] {
     color: #1B5E20 !important;
     font-size: 32px !important;
     font-weight: 700 !important;
 }
-
-[data-testid="stMetricLabel"] {
-    color: #424242 !important;
-}
-
-/* ---------- BUTTON ---------- */
 .stButton>button {
     width: 100%;
     background: linear-gradient(135deg, #2E7D32, #1B5E20);
     color: white;
     font-size: 18px;
-    font-weight: 600;
     padding: 14px;
     border-radius: 8px;
-    border: none;
 }
-
-/* ---------- SPACING ---------- */
-.block-container {
-    padding-top: 1.5rem;
-    padding-left: 3rem;
-    padding-right: 3rem;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -112,28 +74,26 @@ st.markdown("<p style='text-align:center;'>Crop Recommendation and Yield Predict
 class CustomSelectorForSaving:
     def __init__(self, mask):
         self.mask = mask
-
     def get_support(self, indices=False):
         return np.where(self.mask)[0] if indices else self.mask
-
     def transform(self, X):
         return X[:, self.mask]
 
 # ---------------- LOAD MODELS ----------------
 @st.cache_resource
 def load_models():
-    crop_model = joblib.load("models/crop_model.pkl")
-    yield_preprocessor = joblib.load("models/yield_preprocessor.pkl")
-    yield_selector = joblib.load("models/yield_selector.pkl")
-    xgb_model = joblib.load("models/xgb_model.pkl")
-    le_crop = joblib.load("models/le_crop.pkl")
-    le_region = joblib.load("models/le_region.pkl")
-
-    return crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region
+    return (
+        joblib.load("models/crop_model.pkl"),
+        joblib.load("models/yield_preprocessor.pkl"),
+        joblib.load("models/yield_selector.pkl"),
+        joblib.load("models/xgb_model.pkl"),
+        joblib.load("models/le_crop.pkl"),
+        joblib.load("models/le_region.pkl"),
+    )
 
 crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region = load_models()
 
-# ---------------- ALL INDIA STATES + UT ----------------
+# ---------------- STATES ----------------
 india_regions = [
     "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
     "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand",
@@ -141,7 +101,8 @@ india_regions = [
     "Meghalaya","Mizoram","Nagaland","Odisha","Punjab",
     "Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
     "Uttar Pradesh","Uttarakhand","West Bengal",
-    "Andaman and Nicobar Islands","Chandigarh","Dadra and Nagar Haveli and Daman and Diu",
+    "Andaman and Nicobar Islands","Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
     "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry"
 ]
 
@@ -149,7 +110,6 @@ india_regions = [
 st.sidebar.header("Input Parameters")
 
 region = st.sidebar.selectbox("Region", india_regions)
-
 soil = st.sidebar.slider("Soil Moisture", 0.0, 10.0, 5.0)
 humidity = st.sidebar.slider("Humidity", 0.0, 100.0, 60.0)
 temp = st.sidebar.slider("Temperature", 0.0, 50.0, 25.0)
@@ -158,16 +118,12 @@ solar = st.sidebar.slider("Solar Radiation", 0.0, 10.0, 5.0)
 fert = st.sidebar.slider("Fertilizer Residuals", 0.0, 500.0, 100.0)
 pest = st.sidebar.slider("Pesticide Use", 0.0, 500.0, 100.0)
 
-predict = st.sidebar.button("🚀 Run Prediction")
+predict = st.sidebar.button("Run Prediction")
 
 # ---------------- MAIN ----------------
 if predict:
 
-    # Safe encoding
-    if region in le_region.classes_:
-        region_enc = le_region.transform([region])[0]
-    else:
-        region_enc = le_region.transform([le_region.classes_[0]])[0]
+    region_enc = le_region.transform([region])[0] if region in le_region.classes_ else 0
 
     df = pd.DataFrame([{
         "Region": region_enc,
@@ -180,7 +136,7 @@ if predict:
         "Pesticide_Use": pest
     }])
 
-    # Feature Engineering
+    # Feature engineering
     df["Temp_Rain"] = df["Temperature"] * df["Rainfall"]
     df["Humidity_Soil"] = df["Humidity"] * df["Soil_Moisture"]
     df["Solar_Temp"] = df["Solar_Radiation"] * df["Temperature"]
@@ -193,11 +149,9 @@ if predict:
         'Solar_Temp','Chemical_Load','Moisture_Balance'
     ]
 
-    # Crop Prediction
     pred_crop = crop_model.predict(df[crop_cols])
     crop_name = le_crop.inverse_transform(pred_crop)[0]
 
-    # Yield Prediction
     df["Crop_Type"] = pred_crop[0]
     df["Year"] = 2000
 
@@ -211,55 +165,68 @@ if predict:
     X_sel = yield_selector.transform(X_proc)
     final_yield = float(xgb_model.predict(X_sel)[0])
 
-    # ---------------- RESULTS ----------------
+    # ---------------- DISPLAY ----------------
     st.markdown("## Prediction Results")
 
     col1, col2 = st.columns(2)
-
-    with col1:
-        st.metric("Recommended Crop", crop_name)
-
-    with col2:
-        st.metric("Predicted Yield", f"{final_yield:.2f}")
+    col1.metric("Recommended Crop", crop_name)
+    col2.metric("Predicted Yield", f"{final_yield:.2f}")
 
     st.markdown("---")
 
-    # ---------------- FEATURE GRAPH ----------------
+    # ---------------- GRAPH ----------------
     st.markdown("## Feature Contribution")
 
     feature_values = np.array([soil, humidity, temp, rain, solar, fert, pest])
-    feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
-
     percent = (feature_values / feature_values.sum()) * 100
 
-    df_plot = pd.DataFrame({
-        "Feature": feature_names,
-        "Contribution (%)": percent
-    }).sort_values(by="Contribution (%)", ascending=True)
+    names = ["Soil","Humidity","Temperature","Rainfall","Solar","Fertilizer","Pesticide"]
+
+    df_plot = pd.DataFrame({"Feature": names, "Contribution (%)": percent}).sort_values(by="Contribution (%)")
 
     fig, ax = plt.subplots(figsize=(16,8))
+    ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
 
-    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
+    for i, v in enumerate(df_plot["Contribution (%)"]):
+        ax.text(v+1, i, f"{v:.1f}%", va='center')
 
-    for bar in bars:
-        width = bar.get_width()
-        ax.text(width + 1, bar.get_y() + bar.get_height()/2,
-                f"{width:.1f}%", va='center', fontsize=13)
-
-    ax.set_xlabel("Contribution (%)")
     ax.set_title("Feature Importance")
-
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-
     ax.grid(False)
 
-    plt.tight_layout()
+    st.pyplot(fig)
 
-    col1, col2, col3 = st.columns([1,5,1])
-    with col2:
-        st.pyplot(fig)
+    # ---------------- PDF GENERATION ----------------
+    def generate_pdf():
+        doc = SimpleDocTemplate("report.pdf")
+        styles = getSampleStyleSheet()
+
+        content = []
+
+        content.append(Paragraph("Smart Agriculture Report", styles["Title"]))
+        content.append(Spacer(1, 10))
+
+        content.append(Paragraph(f"<b>Region:</b> {region}", styles["Normal"]))
+        content.append(Paragraph(f"<b>Recommended Crop:</b> {crop_name}", styles["Normal"]))
+        content.append(Paragraph(f"<b>Predicted Yield:</b> {final_yield:.2f}", styles["Normal"]))
+        content.append(Spacer(1, 10))
+
+        content.append(Paragraph("<b>Input Parameters:</b>", styles["Heading2"]))
+        for name, val in zip(names, feature_values):
+            content.append(Paragraph(f"{name}: {val}", styles["Normal"]))
+
+        doc.build(content)
+
+        with open("report.pdf", "rb") as f:
+            return f.read()
+
+    pdf_data = generate_pdf()
+
+    st.download_button(
+        label="Download PDF Report",
+        data=pdf_data,
+        file_name="Smart_Agriculture_Report.pdf",
+        mime="application/pdf"
+    )
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
