@@ -352,7 +352,7 @@ if predict:
     colors = plt.cm.Greens(0.3 + 0.7 * norm)
     
 
-    
+    ax.invert_yaxis()
     
     # Plot
     bars = ax.barh(df_plot["Feature"], values, color=colors)
