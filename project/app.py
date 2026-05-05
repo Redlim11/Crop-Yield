@@ -352,12 +352,7 @@ if predict:
     colors = plt.cm.Greens(0.3 + 0.7 * norm)
     
 
-    # Axis labels size
-    ax.set_xlabel("Contribution (%)", fontsize=16, fontweight='bold')
-    ax.set_ylabel("Features", fontsize=16, fontweight='bold')
-    # Increase axis tick label size
-    ax.tick_params(axis='x', labelsize=14)
-    ax.tick_params(axis='y', labelsize=14)
+    
     
     # Plot
     bars = ax.barh(df_plot["Feature"], values, color=colors)
@@ -366,8 +361,12 @@ if predict:
         ax.text(width + 1, bar.get_y() + bar.get_height()/2,
                 f"{width:.1f}%", va='center', fontsize=13)
 
-    ax.set_xlabel("Contribution (%)")
-    ax.set_title("Feature Importance")
+    # Axis labels size
+    ax.set_xlabel("Contribution (%)", fontsize=16, fontweight='bold')
+    ax.set_ylabel("Features", fontsize=16, fontweight='bold')
+    # Increase axis tick label size
+    ax.tick_params(axis='x', labelsize=14)
+    ax.tick_params(axis='y', labelsize=14)
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
