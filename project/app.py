@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 import io
+import shap
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
@@ -242,26 +243,96 @@ if predict:
         st.metric("Predicted Yield", f"{final_yield:.2f}")
 
     st.markdown("---")
+
     # ---------------- FARMER RECOMMENDATIONS ----------------
-    st.subheader("Farmer Recommendations")
-
+    st.markdown("## Smart Farmer Recommendations")
+    
     rec = []
-
+    
+    # Rainfall logic
     if rain < 300:
-        rec.append("Low rainfall detected → consider irrigation support.")
+        rec.append("Insufficient rainfall detected. Use drip irrigation or sprinkler systems to maintain soil moisture.")
+    elif rain > 1500:
+        rec.append("Excess rainfall detected. Ensure proper drainage to prevent waterlogging.")
+    
+    # Soil moisture
     if soil < 3:
-        rec.append("Low soil moisture → improve irrigation or mulching.")
+        rec.append("Soil moisture is low. Apply mulching and increase irrigation frequency.")
+    elif soil > 8:
+        rec.append("Soil moisture is high. Avoid over-irrigation to prevent root damage.")
+    
+    # Temperature
+    if temp > 35:
+        rec.append("High temperature stress. Consider heat-resistant crop varieties.")
+    elif temp < 10:
+        rec.append("Low temperature risk. Use protective cultivation methods.")
+    
+    # Fertilizer
     if fert > 300:
-        rec.append("High fertilizer usage → reduce for sustainable farming.")
+        rec.append("Excess fertilizer usage detected. Reduce input to avoid soil degradation.")
+    elif fert < 50:
+        rec.append("Low nutrient levels. Apply balanced NPK fertilizers.")
+    
+    # Pesticide
     if pest > 300:
-        rec.append("High pesticide use → consider organic pest control.")
-
+        rec.append("High pesticide usage. Adopt Integrated Pest Management (IPM).")
+    
     if not rec:
-        rec.append("Conditions are optimal for farming.")
-
+        rec.append("All conditions are optimal. Maintain current farming practices.")
+    
     for r in rec:
         st.success(r)
-        
+    # ---------------- SHAP AI EXPLANATION ----------------
+    st.markdown("## AI-Based Insights (SHAP Analysis)")
+    
+    try:
+        explainer = shap.TreeExplainer(xgb_model)
+        shap_values = explainer.shap_values(X_sel)
+    
+        # Mean absolute SHAP values
+        shap_importance = np.abs(shap_values).mean(axis=0)
+    
+        # Get selected feature names (IMPORTANT)
+        try:
+            feature_names = yield_preprocessor.get_feature_names_out()
+        except:
+            feature_names = [f"Feature_{i}" for i in range(len(shap_importance))]
+    
+        selected_features = np.array(feature_names)[yield_selector.get_support()]
+    
+        # Top feature
+        top_idx = np.argmax(shap_importance)
+        top_feature = selected_features[top_idx]
+    
+        st.info(f"Most influential factor affecting yield: {top_feature}")
+    
+        # Smart AI recommendation
+        if "Rainfall" in top_feature:
+            st.success("AI Insight: Yield is highly sensitive to rainfall. Optimize irrigation scheduling.")
+        elif "Temperature" in top_feature:
+            st.success("AI Insight: Temperature plays a major role. Consider seasonal crop planning.")
+        elif "Fertilizer" in top_feature:
+            st.success("AI Insight: Nutrient management is critical. Optimize fertilizer dosage.")
+        elif "Soil" in top_feature:
+            st.success("AI Insight: Soil health is key. Improve organic content and structure.")
+    
+    except Exception:
+        st.warning("SHAP explanation could not be generated for this model.")
+    # ---------------- CROP ROTATION ----------------
+    st.markdown("## Crop Rotation Recommendation")
+    
+    rotation_map = {
+        "Rice": "Follow with pulses (lentil/gram) to restore nitrogen in soil.",
+        "Wheat": "Rotate with legumes (chickpea/pea) for soil fertility improvement.",
+        "Maize": "Rotate with soybean or groundnut to enhance nitrogen fixation.",
+        "Sugarcane": "Rotate with legumes or vegetables to avoid soil depletion.",
+        "Soybean": "Rotate with cereals like wheat or maize for balanced nutrient usage."
+    }
+    
+    rotation_advice = rotation_map.get(crop_name, 
+        "Adopt crop rotation with legumes to maintain long-term soil fertility.")
+    
+    st.success(rotation_advice)
     # ---------------- FEATURE GRAPH ----------------
     st.markdown("## Feature Contribution")
 
@@ -322,7 +393,8 @@ if predict:
             content.append(Paragraph(f"• {r}", styles["Normal"]))
 
         content.append(Spacer(1, 10))
-
+        content.append(Paragraph("Crop Rotation Advice:", styles["Heading2"]))
+        content.append(Paragraph(rotation_advice, styles["Normal"]))
         # Save graph into buffer (NOT file)
         img_buffer = io.BytesIO()
         fig.savefig(img_buffer, format="png")
