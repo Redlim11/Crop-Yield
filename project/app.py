@@ -350,7 +350,14 @@ if predict:
     
     # Use GREEN gradient (light → dark)
     colors = plt.cm.Greens(0.3 + 0.7 * norm)
-    ax.invert_yaxis()
+    
+
+    # Axis labels size
+    ax.set_xlabel("Contribution (%)", fontsize=16, fontweight='bold')
+    ax.set_ylabel("Features", fontsize=16, fontweight='bold')
+    # Increase axis tick label size
+    ax.tick_params(axis='x', labelsize=14)
+    ax.tick_params(axis='y', labelsize=14)
     
     # Plot
     bars = ax.barh(df_plot["Feature"], values, color=colors)
