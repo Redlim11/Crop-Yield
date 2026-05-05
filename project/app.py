@@ -4,82 +4,30 @@ import pandas as pd
 import joblib
 import matplotlib.pyplot as plt
 
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 
-# ---------------- IEEE CLEAN UI ----------------
+# ---------------- UI ----------------
 st.markdown("""
 <style>
-html, body, [class*="css"] {
-    font-family: 'Segoe UI', sans-serif;
-    color: #212121;
-}
-.stApp {
-    background-color: #F6FAF6;
-}
-h1 {
-    color: #1B5E20 !important;
-    font-weight: 700;
-    text-align: center;
-}
-h2 {
-    color: #2E7D32 !important;
-}
-section[data-testid="stSidebar"] {
-    background-color: #FFFFFF;
-    border-right: 1px solid #E0E0E0;
-}
-section[data-testid="stSidebar"] > div {
-    position: fixed;
-    width: 300px;
-}
-label {
-    color: #1B5E20 !important;
-    font-weight: 600 !important;
-}
-.stSlider span {
-    color: #2E7D32 !important;
-}
-div[data-testid="metric-container"] {
-    background: #FFFFFF;
-    border: 1px solid #E0E0E0;
-    padding: 25px;
-    border-radius: 12px;
-    text-align: center;
-}
-[data-testid="stMetricValue"] {
-    color: #1B5E20 !important;
-    font-size: 32px !important;
-    font-weight: 700 !important;
-}
-.stButton>button {
-    width: 100%;
-    background: linear-gradient(135deg, #2E7D32, #1B5E20);
-    color: white;
-    font-size: 18px;
-    padding: 14px;
-    border-radius: 8px;
-}
+.stApp { background-color: #F6FAF6; }
+h1 { color:#1B5E20; text-align:center; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------- TITLE ----------------
 st.markdown("<h1>Smart Agriculture Decision Support System</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>Crop Recommendation and Yield Prediction using Machine Learning</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Crop Recommendation and Yield Prediction</p>", unsafe_allow_html=True)
 
 # ---------------- FIX PICKLE ----------------
 class CustomSelectorForSaving:
-    def __init__(self, mask):
-        self.mask = mask
-    def get_support(self, indices=False):
-        return np.where(self.mask)[0] if indices else self.mask
-    def transform(self, X):
-        return X[:, self.mask]
+    def __init__(self, mask): self.mask = mask
+    def get_support(self, indices=False): return np.where(self.mask)[0] if indices else self.mask
+    def transform(self, X): return X[:, self.mask]
 
-# ---------------- LOAD MODELS ----------------
+# ---------------- LOAD ----------------
 @st.cache_resource
 def load_models():
     return (
@@ -95,15 +43,8 @@ crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region = 
 
 # ---------------- STATES ----------------
 india_regions = [
-    "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh",
-    "Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand",
-    "Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur",
-    "Meghalaya","Mizoram","Nagaland","Odisha","Punjab",
-    "Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura",
-    "Uttar Pradesh","Uttarakhand","West Bengal",
-    "Andaman and Nicobar Islands","Chandigarh",
-    "Dadra and Nagar Haveli and Daman and Diu",
-    "Delhi","Jammu and Kashmir","Ladakh","Lakshadweep","Puducherry"
+    "Andhra Pradesh","Kerala","Tamil Nadu","Karnataka","Maharashtra",
+    "Punjab","Rajasthan","Uttar Pradesh","West Bengal","Gujarat"
 ]
 
 # ---------------- SIDEBAR ----------------
@@ -166,68 +107,91 @@ if predict:
     final_yield = float(xgb_model.predict(X_sel)[0])
 
     # ---------------- DISPLAY ----------------
-    st.markdown("## Prediction Results")
-
+    st.subheader("Prediction Results")
     col1, col2 = st.columns(2)
     col1.metric("Recommended Crop", crop_name)
     col2.metric("Predicted Yield", f"{final_yield:.2f}")
 
-    st.markdown("---")
+    # ---------------- FARMER RECOMMENDATIONS ----------------
+    st.subheader("Farmer Recommendations")
+
+    rec = []
+
+    if rain < 300:
+        rec.append("Low rainfall detected → consider irrigation support.")
+    if soil < 3:
+        rec.append("Low soil moisture → improve irrigation or mulching.")
+    if fert > 300:
+        rec.append("High fertilizer usage → reduce for sustainable farming.")
+    if pest > 300:
+        rec.append("High pesticide use → consider organic pest control.")
+
+    if not rec:
+        rec.append("Conditions are optimal for farming.")
+
+    for r in rec:
+        st.success(r)
 
     # ---------------- GRAPH ----------------
-    st.markdown("## Feature Contribution")
+    st.subheader("Feature Contribution")
 
-    feature_values = np.array([soil, humidity, temp, rain, solar, fert, pest])
-    percent = (feature_values / feature_values.sum()) * 100
-
+    values = np.array([soil, humidity, temp, rain, solar, fert, pest])
     names = ["Soil","Humidity","Temperature","Rainfall","Solar","Fertilizer","Pesticide"]
 
-    df_plot = pd.DataFrame({"Feature": names, "Contribution (%)": percent}).sort_values(by="Contribution (%)")
+    percent = (values / values.sum()) * 100
 
-    fig, ax = plt.subplots(figsize=(16,8))
-    ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
+    df_plot = pd.DataFrame({"Feature": names, "Contribution": percent}).sort_values(by="Contribution")
 
-    for i, v in enumerate(df_plot["Contribution (%)"]):
+    fig, ax = plt.subplots(figsize=(10,6))
+    ax.barh(df_plot["Feature"], df_plot["Contribution"], color="#2E7D32")
+
+    for i, v in enumerate(df_plot["Contribution"]):
         ax.text(v+1, i, f"{v:.1f}%", va='center')
 
-    ax.set_title("Feature Importance")
+    ax.set_title("Feature Contribution")
     ax.grid(False)
 
     st.pyplot(fig)
 
-    # ---------------- PDF GENERATION ----------------
+    # Save graph image
+    fig.savefig("graph.png")
+
+    # ---------------- PDF ----------------
     def generate_pdf():
         doc = SimpleDocTemplate("report.pdf")
         styles = getSampleStyleSheet()
-
         content = []
 
         content.append(Paragraph("Smart Agriculture Report", styles["Title"]))
-        content.append(Spacer(1, 10))
+        content.append(Spacer(1,10))
 
-        content.append(Paragraph(f"<b>Region:</b> {region}", styles["Normal"]))
-        content.append(Paragraph(f"<b>Recommended Crop:</b> {crop_name}", styles["Normal"]))
-        content.append(Paragraph(f"<b>Predicted Yield:</b> {final_yield:.2f}", styles["Normal"]))
-        content.append(Spacer(1, 10))
+        content.append(Paragraph(f"Region: {region}", styles["Normal"]))
+        content.append(Paragraph(f"Crop: {crop_name}", styles["Normal"]))
+        content.append(Paragraph(f"Yield: {final_yield:.2f}", styles["Normal"]))
+        content.append(Spacer(1,10))
 
-        content.append(Paragraph("<b>Input Parameters:</b>", styles["Heading2"]))
-        for name, val in zip(names, feature_values):
-            content.append(Paragraph(f"{name}: {val}", styles["Normal"]))
+        content.append(Paragraph("Recommendations:", styles["Heading2"]))
+        for r in rec:
+            content.append(Paragraph(f"- {r}", styles["Normal"]))
+
+        content.append(Spacer(1,10))
+        content.append(Paragraph("Feature Contribution Graph:", styles["Heading2"]))
+        content.append(Image("graph.png", width=400, height=250))
 
         doc.build(content)
 
         with open("report.pdf", "rb") as f:
             return f.read()
 
-    pdf_data = generate_pdf()
+    pdf = generate_pdf()
 
     st.download_button(
-        label="Download PDF Report",
-        data=pdf_data,
-        file_name="Smart_Agriculture_Report.pdf",
-        mime="application/pdf"
+        "Download PDF Report",
+        pdf,
+        "Smart_Agriculture_Report.pdf",
+        "application/pdf"
     )
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("<p style='text-align:center;'>© Smart Agriculture System | IEEE Conference Presentation</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>© IEEE Smart Agriculture Project</p>", unsafe_allow_html=True)
