@@ -301,45 +301,33 @@ if predict:
     for r in rec:
         st.success(r)
     # ---------------- SHAP AI EXPLANATION ----------------
-    st.markdown("## AI-Based Insights (SHAP Analysis)")
-    
-    try:
-        explainer = shap.TreeExplainer(xgb_model)
-        shap_values = explainer.shap_values(X_sel)
-    
-        # Mean absolute SHAP values
-        shap_importance = np.abs(shap_values).mean(axis=0)
-    
-        # Get selected feature names (IMPORTANT)
-        try:
-            feature_names = yield_preprocessor.get_feature_names_out()
-        except:
-            feature_names = [f"Feature_{i}" for i in range(len(shap_importance))]
-    
-        selected_features = np.array(feature_names)[yield_selector.get_support()]
-    
-        raw_feature = selected_features[top_idx]
+    st.markdown("## AI-Based Insights")
 
-        # Clean name
-        clean_feature = raw_feature.replace("num__", "").replace("cat__", "")
-        
-        # Optional: make nicer formatting
-        clean_feature = clean_feature.replace("_", " ")
-        
-        st.info(f"Most influential factor affecting yield: {clean_feature}")
+    if shap_available:
+        try:
+            explainer = shap.TreeExplainer(xgb_model)
+            shap_values = explainer.shap_values(X_sel)
     
-        # Smart AI recommendation
-        if "Rainfall" in top_feature:
-            st.success("AI Insight: Yield is highly sensitive to rainfall. Optimize irrigation scheduling.")
-        elif "Temperature" in top_feature:
-            st.success("AI Insight: Temperature plays a major role. Consider seasonal crop planning.")
-        elif "Fertilizer" in top_feature:
-            st.success("AI Insight: Nutrient management is critical. Optimize fertilizer dosage.")
-        elif "Soil" in top_feature:
-            st.success("AI Insight: Soil health is key. Improve organic content and structure.")
+            shap_importance = np.abs(shap_values).mean(axis=0)
     
-    except Exception:
-        st.warning("SHAP explanation could not be generated for this model.")
+            top_idx = np.argmax(shap_importance)
+    
+            st.info(f"Most influential feature index: {top_idx}")
+            st.success("AI-based explanation generated successfully.")
+    
+        except:
+            st.warning("SHAP available but failed to compute explanation.")
+    
+    else:
+        st.warning("SHAP not installed. Showing rule-based insights instead.")
+    
+        # fallback logic
+        if rain > 1000:
+            st.info("High rainfall significantly impacts yield.")
+        elif temp > 30:
+            st.info("Temperature plays a major role in crop growth.")
+        elif fert > 200:
+            st.info("Fertilizer usage influences yield.")
     # ---------------- CROP ROTATION ----------------
     st.markdown("## Crop Rotation Recommendation")
     
