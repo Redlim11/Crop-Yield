@@ -11,6 +11,17 @@ st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 st.title("Smart Agriculture Decision Support System")
 st.markdown("Crop Recommendation and Yield Prediction using Machine Learning")
 
+# ---------------- FIX PICKLE ERROR ----------------
+class CustomSelectorForSaving:
+    def __init__(self, mask):
+        self.mask = mask
+
+    def get_support(self, indices=False):
+        return np.where(self.mask)[0] if indices else self.mask
+
+    def transform(self, X):
+        return X[:, self.mask]
+
 # ---------------- LOAD MODELS ----------------
 @st.cache_resource
 def load_models():
@@ -22,6 +33,7 @@ def load_models():
     le_region = joblib.load("models/le_region.pkl")
 
     return crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region
+
 
 crop_model, yield_preprocessor, yield_selector, xgb_model, le_crop, le_region = load_models()
 
@@ -57,7 +69,7 @@ if predict:
         "Pesticide_Use": pest
     }])
 
-    # Feature Engineering
+    # ---------------- FEATURE ENGINEERING ----------------
     df["Temp_Rain"] = df["Temperature"] * df["Rainfall"]
     df["Humidity_Soil"] = df["Humidity"] * df["Soil_Moisture"]
     df["Solar_Temp"] = df["Solar_Radiation"] * df["Temperature"]
@@ -93,7 +105,7 @@ if predict:
     xgb_pred = xgb_model.predict(X_sel)
     final_yield = float(xgb_pred[0])
 
-    # ---------------- OUTPUT SECTION ----------------
+    # ---------------- OUTPUT ----------------
     col1, col2 = st.columns(2)
 
     with col1:
@@ -105,31 +117,27 @@ if predict:
     st.markdown("---")
 
     # ---------------- VISUALIZATION ----------------
-    st.subheader("Input Feature Overview")
+    st.subheader("Input Feature Analysis")
 
-    feature_values = [
-        soil, humidity, temp, rain, solar, fert, pest
-    ]
-
-    feature_names = [
-        "Soil", "Humidity", "Temperature",
-        "Rainfall", "Solar", "Fertilizer", "Pesticide"
-    ]
+    feature_values = [soil, humidity, temp, rain, solar, fert, pest]
+    feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
 
     fig, ax = plt.subplots()
     ax.barh(feature_names, feature_values)
+    ax.set_xlabel("Values")
     ax.set_title("Input Parameters")
     st.pyplot(fig)
 
     # ---------------- YIELD COMPARISON ----------------
-    st.subheader("Yield Interpretation")
+    st.subheader("Yield Comparison")
 
-    avg_yield = 50  # reference baseline (can adjust)
+    avg_yield = 50  # baseline reference
 
     fig2, ax2 = plt.subplots()
     ax2.bar(["Predicted Yield", "Average Yield"], [final_yield, avg_yield])
+    ax2.set_ylabel("Yield")
     st.pyplot(fig2)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("Developed for Smart Agriculture using Machine Learning")
+st.markdown("Smart Agriculture System | Machine Learning Deployment")
