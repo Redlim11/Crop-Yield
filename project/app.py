@@ -103,6 +103,22 @@ div[data-testid="metric-container"] {
     padding-left: 3rem;
     padding-right: 3rem;
 }
+/* ---------- DOWNLOAD BUTTON MATCH ---------- */
+div.stDownloadButton > button {
+    width: 100%;
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    padding: 14px;
+    border-radius: 8px;
+    border: none;
+}
+
+div.stDownloadButton > button:hover {
+    transform: scale(1.03);
+    background: linear-gradient(135deg, #1B5E20, #0D3B12);
+}
 
 </style>
 """, unsafe_allow_html=True)
