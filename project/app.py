@@ -318,22 +318,15 @@ if predict:
     
         selected_features = np.array(feature_names)[yield_selector.get_support()]
     
-        # Top feature
-        feature_labels = {
-            "Soil Moisture": "Soil Moisture Level",
-            "Humidity": "Humidity",
-            "Temperature": "Temperature",
-            "Rainfall": "Rainfall",
-            "Solar Radiation": "Sunlight Hours",
-            "Fertilizer Residuals": "Fertilizer Usage",
-            "Pesticide Use": "Pesticide Usage"
-        }
+        raw_feature = selected_features[top_idx]
+
+        # Clean name
         clean_feature = raw_feature.replace("num__", "").replace("cat__", "")
+        
+        # Optional: make nicer formatting
         clean_feature = clean_feature.replace("_", " ")
         
-        friendly_name = feature_labels.get(clean_feature, clean_feature)
-        
-        st.info(f"Most influential factor affecting Yield: {friendly_name}")
+        st.info(f"Most influential factor affecting yield: {clean_feature}")
     
         # Smart AI recommendation
         if "Rainfall" in top_feature:
