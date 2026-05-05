@@ -184,7 +184,7 @@ if predict:
     st.markdown("---")
 
     # ---------------- PIE CHART ONLY ----------------
-   st.subheader("Feature Contribution")
+    st.subheader("Feature Contribution")
 
     feature_values = [soil, humidity, temp, rain, solar, fert, pest]
     feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
