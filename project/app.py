@@ -14,12 +14,12 @@ st.markdown("""
 /* ---------- GLOBAL ---------- */
 html, body, [class*="css"] {
     font-family: 'Segoe UI', sans-serif;
-    color: #1C1C1C;
+    color: #212121;
 }
 
 /* ---------- BACKGROUND ---------- */
 .stApp {
-    background-color: #F8FBF8;
+    background-color: #F7FAF7;
 }
 
 /* ---------- TITLE ---------- */
@@ -29,7 +29,7 @@ h1 {
     text-align: center;
 }
 
-h2, h3 {
+h2 {
     color: #2E7D32 !important;
 }
 
@@ -39,60 +39,53 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid #E0E0E0;
 }
 
-/* ---------- FIXED SIDEBAR ---------- */
+/* FIX SIDEBAR */
 section[data-testid="stSidebar"] > div {
     position: fixed;
     width: 300px;
 }
 
-/* ---------- SELECTBOX MAIN ---------- */
+/* ---------- SELECTBOX ---------- */
 div[data-baseweb="select"] {
     background-color: #FFFFFF !important;
-    border: 1px solid #C8E6C9 !important;
+    border: 1px solid #A5D6A7 !important;
     border-radius: 6px !important;
 }
 
-/* ---------- DROPDOWN OPTIONS ---------- */
 ul[role="listbox"] {
     background-color: #FFFFFF !important;
-    color: black !important;
-}
-
-/* ---------- SELECT TEXT ---------- */
-div[data-baseweb="select"] * {
-    color: #1B5E20 !important;
+    color: #212121 !important;
 }
 
 /* ---------- METRIC ---------- */
 div[data-testid="metric-container"] {
     background: #FFFFFF;
     border: 1px solid #E0E0E0;
-    padding: 20px;
+    padding: 22px;
     border-radius: 12px;
-    box-shadow: 0px 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0px 3px 10px rgba(0,0,0,0.05);
     text-align: center;
 }
 
-/* ---------- BUTTON (IMPORTANT FIX) ---------- */
+/* ---------- BUTTON ---------- */
 .stButton>button {
     width: 100%;
-    background-color: #2E7D32;
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
     color: white;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
-    padding: 12px;
+    padding: 14px;
     border-radius: 8px;
     border: none;
 }
 
 .stButton>button:hover {
-    background-color: #1B5E20;
-    transform: scale(1.02);
+    transform: scale(1.03);
 }
 
 /* ---------- SPACING ---------- */
 .block-container {
-    padding-top: 2rem;
+    padding-top: 1.5rem;
     padding-left: 3rem;
     padding-right: 3rem;
 }
@@ -102,7 +95,7 @@ div[data-testid="metric-container"] {
 
 # ---------------- TITLE ----------------
 st.markdown("<h1>Smart Agriculture Decision Support System</h1>", unsafe_allow_html=True)
-st.markdown("<p>Crop Recommendation and Yield Prediction using Machine Learning</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Crop Recommendation and Yield Prediction using Machine Learning</p>", unsafe_allow_html=True)
 
 # ---------------- FIX PICKLE ----------------
 class CustomSelectorForSaving:
@@ -142,7 +135,7 @@ solar = st.sidebar.slider("Solar Radiation", 0.0, 10.0, 5.0)
 fert = st.sidebar.slider("Fertilizer Residuals", 0.0, 500.0, 100.0)
 pest = st.sidebar.slider("Pesticide Use", 0.0, 500.0, 100.0)
 
-predict = st.sidebar.button("Run Prediction")
+predict = st.sidebar.button("🚀 Run Prediction")
 
 # ---------------- MAIN ----------------
 if predict:
@@ -220,17 +213,21 @@ if predict:
         "Contribution (%)": percent
     }).sort_values(by="Contribution (%)", ascending=True)
 
-    fig, ax = plt.subplots(figsize=(7,5))
+    fig, ax = plt.subplots(figsize=(11,6))
 
     bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color="#2E7D32")
 
     for bar in bars:
         width = bar.get_width()
-        ax.text(width + 0.5, bar.get_y() + bar.get_height()/2,
-                f"{width:.1f}%", va='center')
+        ax.text(width + 1,
+                bar.get_y() + bar.get_height()/2,
+                f"{width:.1f}%",
+                va='center',
+                fontsize=12,
+                fontweight='bold')
 
-    ax.set_xlabel("Contribution (%)")
-    ax.set_title("Feature Importance")
+    ax.set_xlabel("Contribution (%)", fontsize=12)
+    ax.set_title("Feature Importance", fontsize=15, fontweight='bold')
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
@@ -240,7 +237,7 @@ if predict:
 
     plt.tight_layout()
 
-    col1, col2, col3 = st.columns([1,2,1])
+    col1, col2, col3 = st.columns([1,4,1])
     with col2:
         st.pyplot(fig)
 
