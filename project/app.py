@@ -125,6 +125,7 @@ div.stDownloadButton > button:hover {
 """, unsafe_allow_html=True)
 
 # ---------------- TITLE ----------------
+st.markdown("<h1> </h1>", unsafe_allow_html=True)
 st.markdown("<h1>Smart Agriculture Decision Support System</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align:center;'>Crop Recommendation and Yield Prediction using Machine Learning</p>", unsafe_allow_html=True)
 
@@ -404,4 +405,4 @@ if predict:
     )
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("<p style='text-align:center;'>© Smart Agriculture System | IEEE Conference Presentation</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>© Hybrid Model for Smart Agriculture Decision Support System </p>", unsafe_allow_html=True)
