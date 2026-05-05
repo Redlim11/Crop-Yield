@@ -5,79 +5,28 @@ import joblib
 import matplotlib.pyplot as plt
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(
-    page_title="Smart Agriculture System",
-    layout="wide"
-)
+st.set_page_config(page_title="Smart Agriculture System", layout="wide")
 
-# ---------------- IEEE STYLE THEME ----------------
+# ---------------- CUSTOM GREEN THEME ----------------
 st.markdown("""
 <style>
-
-/* -------- Background -------- */
-.stApp {
-    background-color: #FAFAFA;
-}
-
-/* -------- Typography -------- */
-html, body, [class*="css"]  {
-    font-family: 'Segoe UI', sans-serif;
-}
-
-/* -------- Title -------- */
-h1 {
-    color: #1B5E20;
-    font-size: 34px;
-    font-weight: 600;
-}
-
-h2, h3 {
-    color: #2E7D32;
-    font-weight: 500;
-}
-
-/* -------- Cards -------- */
-.block-container {
-    padding-top: 2rem;
-}
-
-/* -------- Metrics Card -------- */
-div[data-testid="metric-container"] {
-    background-color: #F1F8F4;
-    border: 1px solid #E0E0E0;
-    padding: 20px;
-    border-radius: 10px;
-}
-
-/* -------- Sidebar -------- */
-section[data-testid="stSidebar"] {
-    background-color: #F5F5F5;
-}
-
-/* -------- Buttons -------- */
-.stButton>button {
-    background-color: #2E7D32;
-    color: white;
-    border-radius: 8px;
-    padding: 10px;
-    border: none;
-}
-
-.stButton>button:hover {
-    background-color: #1B5E20;
-}
-
-/* -------- Divider -------- */
-hr {
-    border: 0.5px solid #E0E0E0;
-}
-
+    .stApp {
+        background-color: #F1F8F4;
+    }
+    h1, h2, h3 {
+        color: #1B5E20;
+    }
+    .stMetric {
+        background-color: #E8F5E9;
+        padding: 15px;
+        border-radius: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # ---------------- TITLE ----------------
 st.title("Smart Agriculture Decision Support System")
-st.markdown("A Machine Learning-Based Framework for Crop Recommendation and Yield Prediction")
+st.markdown("Crop Recommendation and Yield Prediction using Machine Learning")
 
 # ---------------- FIX PICKLE ERROR ----------------
 class CustomSelectorForSaving:
@@ -117,7 +66,7 @@ solar = st.sidebar.slider("Solar Radiation", 0.0, 10.0, 5.0)
 fert = st.sidebar.slider("Fertilizer Residuals", 0.0, 500.0, 100.0)
 pest = st.sidebar.slider("Pesticide Use", 0.0, 500.0, 100.0)
 
-predict = st.sidebar.button("Run Prediction")
+predict = st.sidebar.button("Predict")
 
 # ---------------- MAIN ----------------
 if predict:
@@ -171,8 +120,6 @@ if predict:
     final_yield = float(xgb_pred[0])
 
     # ---------------- OUTPUT ----------------
-    st.markdown("### Prediction Results")
-
     col1, col2 = st.columns(2)
 
     with col1:
@@ -183,34 +130,48 @@ if predict:
 
     st.markdown("---")
 
-    # ---------------- GRAPH 1 ----------------
-    st.subheader("Feature Analysis")
+    # ---------------- GRAPH 1: FEATURE BAR ----------------
+    st.subheader("Input Feature Analysis")
 
     feature_values = [soil, humidity, temp, rain, solar, fert, pest]
     feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
 
-    fig, ax = plt.subplots()
-    ax.barh(feature_names, feature_values, color="#2E7D32")
-    ax.set_xlabel("Value")
-    ax.set_title("Input Features")
-    ax.spines["top"].set_visible(False)
-    ax.spines["right"].set_visible(False)
+    colors = ["#A5D6A7","#81C784","#66BB6A","#4CAF50","#388E3C","#2E7D32","#1B5E20"]
 
+    fig, ax = plt.subplots()
+    ax.barh(feature_names, feature_values, color=colors)
+    ax.set_title("Input Parameters")
+    ax.grid(False)
     st.pyplot(fig)
 
-    # ---------------- GRAPH 2 ----------------
+    # ---------------- GRAPH 2: DONUT CHART ----------------
+    st.subheader("Resource Contribution")
+
+    fig2, ax2 = plt.subplots()
+    ax2.pie(
+        feature_values,
+        labels=feature_names,
+        autopct="%1.1f%%",
+        colors=colors,
+        wedgeprops={'width':0.4}
+    )
+    ax2.set_title("Input Contribution Distribution")
+    st.pyplot(fig2)
+
+    # ---------------- GRAPH 3: YIELD COMPARISON ----------------
     st.subheader("Yield Comparison")
 
     avg_yield = 50
 
-    fig2, ax2 = plt.subplots()
-    ax2.bar(["Predicted", "Baseline"], [final_yield, avg_yield], color=["#1B5E20", "#A5D6A7"])
-    ax2.set_ylabel("Yield")
-    ax2.spines["top"].set_visible(False)
-    ax2.spines["right"].set_visible(False)
-
-    st.pyplot(fig2)
+    fig3, ax3 = plt.subplots()
+    ax3.bar(
+        ["Predicted", "Average"],
+        [final_yield, avg_yield],
+        color=["#1B5E20","#81C784"]
+    )
+    ax3.set_ylabel("Yield")
+    st.pyplot(fig3)
 
 # ---------------- FOOTER ----------------
 st.markdown("---")
-st.markdown("© Smart Agriculture Decision Support System | IEEE Project Presentation")
+st.markdown("Smart Agriculture System | Green AI Deployment")
