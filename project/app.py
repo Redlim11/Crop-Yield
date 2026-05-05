@@ -186,34 +186,41 @@ if predict:
     # ---------------- PIE CHART ONLY ----------------
     st.subheader("Input Feature Contribution")
 
-feature_values = [soil, humidity, temp, rain, solar, fert, pest]
-feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
-
-colors = ["#A5D6A7","#81C784","#66BB6A","#4CAF50","#388E3C","#2E7D32","#1B5E20"]
-
-# explode small slices slightly
-explode = [0.05 if v < 50 else 0 for v in feature_values]
-
-fig, ax = plt.subplots(figsize=(6,6))
-fig.patch.set_facecolor('white')
-
-wedges, texts, autotexts = ax.pie(
-    feature_values,
-    labels=feature_names,
-    autopct=lambda p: f'{p:.1f}%' if p > 5 else '',  # hide tiny labels
-    startangle=140,
-    colors=colors,
-    explode=explode,
-    pctdistance=0.7,
-    labeldistance=1.1,
-    wedgeprops={'edgecolor': 'white'},
-    textprops={'fontsize':10}
-)
-
-ax.set_title("Feature Contribution Distribution", color="#1B5E20")
-
-st.pyplot(fig)
-
+    feature_values = [soil, humidity, temp, rain, solar, fert, pest]
+    feature_names = ["Soil", "Humidity", "Temperature", "Rainfall", "Solar", "Fertilizer", "Pesticide"]
+    
+    colors = ["#A5D6A7","#81C784","#66BB6A","#4CAF50","#388E3C","#2E7D32","#1B5E20"]
+    
+    fig, ax = plt.subplots(figsize=(7,7))
+    
+    # Donut chart
+    wedges, texts, autotexts = ax.pie(
+        feature_values,
+        autopct=lambda p: f'{p:.1f}%' if p > 5 else '',  # hide tiny %
+        startangle=90,
+        colors=colors,
+        wedgeprops={'width':0.4, 'edgecolor':'white'},
+        pctdistance=0.75,
+        textprops={'fontsize':11, 'weight':'bold'}
+    )
+    
+    # Center text
+    ax.text(0, 0, "Feature\nContribution", ha='center', va='center',
+            fontsize=14, fontweight='bold', color="#1B5E20")
+    
+    # Legend (clean IEEE style)
+    ax.legend(
+        wedges,
+        feature_names,
+        title="Features",
+        loc="center left",
+        bbox_to_anchor=(1, 0.5),
+        fontsize=10
+    )
+    
+    ax.set_title("Input Feature Contribution", fontsize=14, color="#1B5E20")
+    
+    st.pyplot(fig)
 # ---------------- FOOTER ----------------
 st.markdown("---")
 st.markdown("© Smart Agriculture System | IEEE Project Presentation")
