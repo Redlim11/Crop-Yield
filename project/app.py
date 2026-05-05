@@ -342,14 +342,18 @@ if predict:
 
     fig, ax = plt.subplots(figsize=(16,8))
 
-    # Normalize values for color scaling
-    norm = plt.Normalize(df_plot["Contribution (%)"].min(), df_plot["Contribution (%)"].max())
+   # Sort already done (ascending=True)
+    values = df_plot["Contribution (%)"].values
     
-    # Use green gradient (light → dark)
-    colors = plt.cm.Greens(norm(df_plot["Contribution (%)"]))
+    # Normalize values (0 → 1)
+    norm = (values - values.min()) / (values.max() - values.min())
+    
+    # Use GREEN gradient (light → dark)
+    colors = plt.cm.Greens(0.3 + 0.7 * norm)
+    ax.invert_yaxis()
     
     # Plot
-    bars = ax.barh(df_plot["Feature"], df_plot["Contribution (%)"], color=colors)
+    bars = ax.barh(df_plot["Feature"], values, color=colors)
     for bar in bars:
         width = bar.get_width()
         ax.text(width + 1, bar.get_y() + bar.get_height()/2,
